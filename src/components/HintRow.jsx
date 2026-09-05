@@ -8,7 +8,7 @@ const STATE_CLASS = {
 
 export function Arrow({ dir }) {
   if (!dir) return null;
-  return <span aria-hidden="true" className="ml-1">{dir === "up" ? "↑" : "↓"}</span>;
+  return <span aria-hidden="true" className="sm:ml-1">{dir === "up" ? "↑" : "↓"}</span>;
 }
 
 export function cellAria(cell) {
@@ -28,10 +28,10 @@ export default function HintRow({ name, cells, animate }) {
             key={c.key}
             title={cellAria(c)}
             aria-label={cellAria(c)}
-            className={`${STATE_CLASS[c.state]} ${animate ? "cell-pop" : ""} flex h-12 items-center justify-center rounded px-1 text-center text-xs font-semibold leading-tight sm:text-sm`}
+            className={`${STATE_CLASS[c.state]} ${animate ? "cell-pop" : ""} flex h-12 flex-col items-center justify-center rounded px-0.5 text-center text-[11px] font-semibold leading-tight sm:h-12 sm:flex-row sm:text-sm`}
             style={animate ? { animationDelay: `${i * 90}ms` } : undefined}
           >
-            <span className="truncate">{c.text}</span>
+            <span className="break-words [overflow-wrap:anywhere]">{c.short ?? c.text}</span>
             <Arrow dir={c.dir} />
           </div>
         ))}

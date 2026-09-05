@@ -49,7 +49,7 @@ describe("compareGuess", () => {
   it("uses CPU columns for CPU boards", () => {
     const keys = columnsFor(i7).map((c) => c.key);
     expect(keys).toEqual(["vendor", "year", "msrp_usd", "cores", "power_w", "tier", "arch"]);
-    expect(byKey(compareGuess(i7, i7)).cores.text).toBe("4 (8T)");
+    expect(byKey(compareGuess(i7, i7)).cores.text).toBe("4c/8t");
   });
 });
 

@@ -1,6 +1,6 @@
 // The hint logic. compareGuess() turns one guess into a row of cells; every cell says how
 // the guess relates to the answer on one spec. Pure functions, unit-tested in compare.test.js.
-import { formatMemory, formatPrice, formatTier } from "./data.js";
+import { formatMemory, formatPrice } from "./data.js";
 
 // Column definitions per board type. `close` returns true when a numeric miss is near
 // enough to colour yellow; exact matches are green; everything else grey with an arrow.
@@ -11,16 +11,16 @@ const COLUMNS = {
     { key: "msrp_usd", label: "Launch price", kind: "num", get: (i) => i.msrp_usd, fmt: (i) => formatPrice(i.msrp_usd), close: within(0.1) },
     { key: "memory_mb", label: "VRAM", kind: "num", get: (i) => i.memory_mb, fmt: (i) => formatMemory(i.memory_mb) },
     { key: "power_w", label: "Rated power", kind: "num", get: (i) => i.power_w, fmt: (i) => `${i.power_w} W`, close: within(0.1) },
-    { key: "tier", label: "Tier", kind: "num", get: (i) => i.tier, fmt: formatTier },
+    { key: "tier", label: "Tier", kind: "num", get: (i) => i.tier, fmt: (i) => `${i.tier}0`, },
     { key: "arch", label: "Arch", kind: "cat", get: (i) => i.arch, fmt: (i) => i.arch },
   ],
   cpu: [
     { key: "vendor", label: "Vendor", kind: "cat", get: (i) => i.vendor, fmt: (i) => i.vendor },
     { key: "year", label: "Year", kind: "num", get: (i) => i.year, fmt: (i) => String(i.year), close: (a, b) => Math.abs(a - b) <= 1 },
     { key: "msrp_usd", label: "Launch price", kind: "num", get: (i) => i.msrp_usd, fmt: (i) => formatPrice(i.msrp_usd), close: within(0.1) },
-    { key: "cores", label: "Cores", kind: "num", get: (i) => i.cores, fmt: (i) => `${i.cores}` + (i.threads ? ` (${i.threads}T)` : "") },
+    { key: "cores", label: "Cores", kind: "num", get: (i) => i.cores, fmt: (i) => `${i.cores}c` + (i.threads ? `/${i.threads}t` : "") },
     { key: "power_w", label: "Rated power", kind: "num", get: (i) => i.power_w, fmt: (i) => `${i.power_w} W`, close: within(0.1) },
-    { key: "tier", label: "Tier", kind: "num", get: (i) => i.tier, fmt: formatTier },
+    { key: "tier", label: "Tier", kind: "num", get: (i) => i.tier, fmt: (i) => `${i.tier}` },
     { key: "arch", label: "Socket", kind: "cat", get: (i) => i.arch, fmt: (i) => i.arch },
   ],
 };
