@@ -4,3 +4,6 @@ dist/
 .env.*
 .DS_Store
 .claude/.cc-writes
+.venv/
+data/raw/
+__pycache__/
