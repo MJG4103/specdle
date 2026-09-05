@@ -212,8 +212,15 @@ def inspect(refresh: bool) -> None:
 
 # ----------------------------------------------------------------------------- static maps
 
-# GPU architecture family by series label. Wikipedia's per-row "code name" is the chip
-# (GA102, Navi 31); players know the family name, so that is the hint.
+# GPU architecture. Resolved per row: Nvidia from the chip codename prefix (GM107 ->
+# Maxwell, so the GTX 750 in the "700 series" section is labelled correctly), AMD from
+# the table's Architecture column. GPU_ARCH is only the fallback for tables without either.
+NVIDIA_ARCH_PREFIX = [
+    ("GB", "Blackwell"), ("AD", "Ada Lovelace"), ("GA", "Ampere"), ("TU", "Turing"),
+    ("GV", "Volta"), ("GP", "Pascal"), ("GM", "Maxwell"), ("GK", "Kepler"), ("GF", "Fermi"),
+    ("GT", "Tesla"), ("G", "Tesla"), ("C", "Tesla"),
+]
+AMD_ARCH_CELL = re.compile(r"(TeraScale|Terascale|GCN|RDNA)\s*(\d(?:\.\d)?)?", re.I)
 GPU_ARCH = {
     "GeForce 8 series": "Tesla", "GeForce 9 series": "Tesla", "GeForce 100 series": "Tesla",
     "GeForce 200 series": "Tesla", "GeForce 300 series": "Tesla",
@@ -225,12 +232,6 @@ GPU_ARCH = {
     "GeForce RTX 50 series": "Blackwell",
     "Radeon HD 2000 series": "TeraScale", "Radeon HD 3000 series": "TeraScale",
     "Radeon HD 4000 series": "TeraScale", "Radeon HD 5000 series": "TeraScale 2",
-    "Radeon HD 6000 series": "TeraScale 2/3", "Radeon HD 7000 series": "GCN",
-    "Radeon HD 8000 series": "GCN", "Radeon 200 series": "GCN", "Radeon 300 series": "GCN",
-    "Radeon 400 series": "Polaris", "Radeon 500 series": "Polaris",
-    "Radeon RX Vega series": "Vega", "Radeon VII series": "Vega",
-    "Radeon RX 5000 series": "RDNA", "Radeon RX 6000 series": "RDNA 2",
-    "Radeon RX 7000 series": "RDNA 3", "Radeon RX 9000 series": "RDNA 4",
 }
 # CPU socket by series label. Mainstream desktop socket; HEDT parts in the same
 # section (Core i7 Extreme, X-series) are corrected by the per-name rules below.
@@ -274,20 +275,23 @@ def clean(v) -> str | None:
     return s
 
 
-def parse_date(s: str | None) -> tuple[int | None, int | None]:
-    """-> (year, month). Handles 'September 17, 2020', 'Sep 2020', 'Q3 2010', '2008'."""
+def parse_date(s: str | None) -> tuple[int | None, int | None, int | None, str | None]:
+    """-> (year, month, quarter, precision). Handles 'September 17, 2020', 'Sep 2020',
+    'Q3 2010', '2008'. A quarter-only date keeps month None; precision says which
+    fields are real so nothing downstream mistakes an estimate for a release month."""
     if not s:
-        return None, None
+        return None, None, None, None
     m = re.search(r"\b([A-Za-z]{3,9})\.?\s+(?:\d{1,2},?\s+)?((?:19|20)\d{2})\b", s)
     if m and m.group(1)[:3].lower() in MONTHS:
-        return int(m.group(2)), MONTHS[m.group(1)[:3].lower()]
+        mo = MONTHS[m.group(1)[:3].lower()]
+        return int(m.group(2)), mo, (mo + 2) // 3, "month"
     m = re.search(r"\bQ([1-4])\s*((?:19|20)\d{2})\b", s)
     if m:
-        return int(m.group(2)), int(m.group(1)) * 3 - 1
+        return int(m.group(2)), None, int(m.group(1)), "quarter"
     m = re.search(r"\b((?:19|20)\d{2})\b", s)
     if m:
-        return int(m.group(1)), None
-    return None, None
+        return int(m.group(1)), None, None, "year"
+    return None, None, None, None
 
 
 def parse_price(s: str | None) -> int | None:
@@ -309,9 +313,10 @@ def parse_first_number(s: str | None) -> float | None:
     return float(m.group()) if m else None
 
 
-def parse_memory_gb(s: str | None, header: str) -> float | None:
-    """VRAM in GB. Unit comes from the cell if present, else the header. Cells listing
-    several variants ('256 512 1024') take the first, the base configuration."""
+def parse_memory_mb(s: str | None, header: str) -> int | None:
+    """VRAM in MB (binary: 1 GB = 1024 MB), kept exact so 320 MB stays 320 MB.
+    Unit comes from the cell if present, else the header. Cells listing several
+    variants ('256 512 1024') take the first, the base configuration."""
     if not s or "shared" in s.lower():
         return None
     mult = 1
@@ -326,10 +331,10 @@ def parse_memory_gb(s: str | None, header: str) -> float | None:
     unit = (m.group(2) or "").lower()
     h = header.lower()
     if unit in ("gb", "gib") or (not unit and ("(gb)" in h or "(gib)" in h)):
-        return n
+        return round(n * 1024)
     if unit in ("mb", "mib") or (not unit and ("(mb)" in h or "(mib)" in h)):
-        return round(n / 1024, 3)
-    return n if n < 64 else round(n / 1024, 3)   # unlabelled: >=64 must be MB
+        return round(n)
+    return round(n * 1024) if n < 64 else round(n)   # unlabelled: >=64 must be MB
 
 
 def parse_cores(cells: list[str | None]) -> tuple[int | None, int | None]:
@@ -364,6 +369,27 @@ def gpu_tier(name: str, vendor: str) -> int | None:
             return int(d[1])
         return int(d[2])
     return int(d[1]) if d[1] != "0" else int(d[2])
+
+
+def nvidia_arch(codename: str | None) -> str | None:
+    if not codename:
+        return None
+    c = re.sub(r"^\d\s*[×x]\s*", "", codename.strip())   # dual-GPU "2× GK104"
+    for prefix, arch in NVIDIA_ARCH_PREFIX:
+        if c.upper().startswith(prefix) and re.match(rf"{prefix}\s?\d", c, re.I):
+            return arch
+    return None
+
+
+def amd_arch(cell: str | None) -> str | None:
+    """'GCN 1 gen' / 'GCN 4' / 'Terascale 2' / 'RDNA 2 TSMC N6' -> 'GCN 1', 'GCN 4', 'TeraScale 2', 'RDNA 2'."""
+    if not cell:
+        return None
+    m = AMD_ARCH_CELL.search(cell)
+    if not m:
+        return None
+    fam = {"terascale": "TeraScale", "gcn": "GCN", "rdna": "RDNA"}[m.group(1).lower()]
+    return f"{fam} {m.group(2)}" if m.group(2) else fam
 
 
 def cpu_tier(name: str) -> int | None:
@@ -410,6 +436,7 @@ def map_columns(cols: list[str], kind: str) -> dict:
                 or pick(cols, ["tbp"]) or pick(cols, ["tgp"])
                 or pick(cols, ["tdp"], forbid=["turbo"]))
     m["codename"] = pick(cols, ["code name"]) or pick(cols, ["codename"])
+    m["arch"] = next((c for c in cols if c.lower().startswith("architecture")), None)
     m["socket"] = pick(cols, ["socket"])
     if kind == "gpu":
         m["memory"] = pick(cols, ["memory", "size"], forbid=["cache", "bandwidth"])
@@ -460,7 +487,7 @@ def rows_from_table(df: pd.DataFrame, src: Source) -> list[dict]:
             name = ("GeForce " if src.vendor == "Nvidia" else "Radeon ") + name
 
         date_cell = clean(row[cm["date"]]) if cm["date"] else clean(row[cm["date_price"]]) if cm["date_price"] else None
-        year, month = parse_date(date_cell)
+        year, month, quarter, date_precision = parse_date(date_cell)
         price_cell = clean(row[cm["price"]]) if cm["price"] else date_cell if cm["date_price"] else None
         msrp = parse_price(price_cell)
         if msrp is None and cm.get("price_alt"):
@@ -473,6 +500,11 @@ def rows_from_table(df: pd.DataFrame, src: Source) -> list[dict]:
         else:
             tdp = parse_first_number(tdp_cell)
 
+        power_kind = None
+        if cm["tdp"]:
+            h = cm["tdp"].lower()
+            power_kind = ("TBP" if "tbp" in h else "TGP" if "tgp" in h
+                          else "base power" if "base" in h else "TDP")
         item = {
             "id": slug(f"{src.vendor} {name}"),
             "type": src.kind,
@@ -481,16 +513,21 @@ def rows_from_table(df: pd.DataFrame, src: Source) -> list[dict]:
             "series": src.label,
             "year": year,
             "month": month,
+            "quarter": quarter,
+            "date_precision": date_precision,
             "msrp_usd": msrp,
-            "tdp_w": int(tdp) if tdp else None,
+            "power_w": round(tdp) if tdp else None,
+            "power_kind": power_kind,
             "oem": oem,
             "source_section": src.section,
         }
         if src.kind == "gpu":
-            item["memory_gb"] = parse_memory_gb(clean(row[cm["memory"]]) if cm["memory"] else None,
+            item["memory_mb"] = parse_memory_mb(clean(row[cm["memory"]]) if cm["memory"] else None,
                                                 cm["memory"] or "")
             item["tier"] = gpu_tier(name, src.vendor)
-            item["arch"] = GPU_ARCH.get(src.label)
+            arch_cell = clean(row[cm["arch"]]) if cm["arch"] else None
+            item["arch"] = ((nvidia_arch(codename) if src.vendor == "Nvidia" else amd_arch(arch_cell))
+                            or GPU_ARCH.get(src.label))
             item["codename"] = codename
         else:
             cores, threads = parse_cores([clean(row[c]) for c in cm["cores"]])
@@ -508,8 +545,23 @@ def rows_from_table(df: pd.DataFrame, src: Source) -> list[dict]:
     return items
 
 
+def apply_overrides(items: dict[str, dict]) -> None:
+    """data/overrides.json: {id: {"fields": {...}, "source": "url", "note": "..."}}.
+    Hand corrections with a citation, applied after parsing so a rebuild never loses
+    them. Unknown ids are reported, not silently ignored."""
+    path = ROOT / "overrides.json"
+    if not path.exists():
+        return
+    for item_id, ov in json.loads(path.read_text()).items():
+        if item_id not in items:
+            print(f"override for unknown id: {item_id}", file=sys.stderr)
+            continue
+        items[item_id].update(ov["fields"])
+        items[item_id]["override_source"] = ov["source"]
+
+
 def completeness(it: dict) -> int:
-    keys = ["year", "msrp_usd", "tdp_w", "memory_gb" if it["type"] == "gpu" else "cores"]
+    keys = ["year", "msrp_usd", "power_w", "memory_mb" if it["type"] == "gpu" else "cores"]
     return sum(1 for k in keys if it.get(k) is not None)
 
 
@@ -533,12 +585,13 @@ def build(refresh: bool) -> None:
                 # Variant rows (GDDR5 vs DDR4 GT 1010) share an id: keep the fuller one.
                 if prev is None or completeness(it) > completeness(prev):
                     items[it["id"]] = it
+    apply_overrides(items)
     out = sorted(items.values(), key=lambda x: (x["type"], x["vendor"], x["year"], x["month"] or 0, x["name"]))
     for it in out:
         variant = bool(NOT_DAILY.search(it["name"]))
         it["daily"] = (not it["oem"] and not variant and it["msrp_usd"] is not None
-                       and it["tdp_w"] is not None
-                       and (it.get("memory_gb") if it["type"] == "gpu" else it.get("cores")) is not None)
+                       and it["power_w"] is not None
+                       and (it.get("memory_mb") if it["type"] == "gpu" else it.get("cores")) is not None)
 
     payload = {
         "generated": time.strftime("%Y-%m-%d"),
@@ -556,45 +609,88 @@ def build(refresh: bool) -> None:
     write_review(out, dropped_no_year, payload["sources"])
 
 
+def fmt_mem(mb: int | None) -> str:
+    if mb is None:
+        return "—"
+    return f"{mb // 1024} GB" if mb % 1024 == 0 and mb >= 1024 else f"{mb} MB"
+
+
+def fmt_date(it: dict) -> str:
+    if it["date_precision"] == "month":
+        return f"{it['year']}-{it['month']:02d}"
+    if it["date_precision"] == "quarter":
+        return f"{it['year']} Q{it['quarter']}"
+    return str(it["year"])
+
+
 def write_review(items: list[dict], dropped_no_year: int, sources: list[dict]) -> None:
     import random
+    from collections import Counter
     lines = ["# Dataset review sample", "",
-             f"Generated {time.strftime('%Y-%m-%d')} by `data/build.py`. Twenty rows chosen at random",
-             "(fixed seed) for hand-checking against the Wikipedia tables. Tick each row after checking;",
-             "a wrong value means a parser bug, not a one-off fix, so note what was wrong.", ""]
-    lines += ["## Coverage", "", "| Slice | Items | Daily pool | Year | MSRP | TDP | Mem/Cores | Tier |",
-              "|---|---|---|---|---|---|---|---|"]
+             f"Generated {time.strftime('%Y-%m-%d')} by `data/build.py`.", "",
+             "Two seeded random samples: 20 rows from the **daily pool** (answers the game can pick) and",
+             "10 rows from the **rest** (guessable but never the answer: OEM parts, re-releases, rows",
+             "missing a hint). Check each against the linked Wikipedia revision and, where possible, the",
+             "manufacturer. A wrong value can come from the parser, from Wikipedia, or from a definition",
+             "(announcement vs. availability month, tray vs. boxed price); say which. Parser and",
+             "definition problems get fixed in `build.py`; single source errors go in `overrides.json`",
+             "with a citation.", "",
+             "Conventions: dates are as Wikipedia lists them, with `date_precision` saying whether the",
+             "month is known; quarter-only dates have no month. Price is the launch price in whole USD.",
+             "Power is the manufacturer's rated figure (`power_kind`: TDP, TBP, TGP or base power),",
+             "rounded to whole watts. Memory is exact MB (1 GB = 1024 MB). Tier is a digit taken from",
+             "the model number, not a performance rank. Architecture is per chip for GPUs and the",
+             "socket for CPUs.", ""]
+    lines += ["## Coverage", "", "| Slice | Items | Daily pool | Year | Month known | MSRP | Power | Mem/Cores | Tier | Arch |",
+              "|---|---|---|---|---|---|---|---|---|---|"]
+
+    def has_memcores(i):
+        return (i.get("memory_mb") if i["type"] == "gpu" else i.get("cores")) is not None
+
     def slice_row(label, sub):
         n = len(sub) or 1
-        k = "memory_gb" if sub and sub[0]["type"] == "gpu" else "cores"
-        pct = lambda key: f"{100 * sum(1 for i in sub if i.get(key) is not None) // n}%"
-        return f"| {label} | {len(sub)} | {sum(1 for i in sub if i['daily'])} | {pct('year')} | {pct('msrp_usd')} | {pct('tdp_w')} | {pct(k)} | {pct('tier')} |"
+        pct = lambda f: f"{100 * sum(1 for i in sub if f(i)) // n}%"
+        return (f"| {label} | {len(sub)} | {sum(1 for i in sub if i['daily'])} | {pct(lambda i: i['year'] is not None)} "
+                f"| {pct(lambda i: i['month'] is not None)} | {pct(lambda i: i['msrp_usd'] is not None)} "
+                f"| {pct(lambda i: i['power_w'] is not None)} | {pct(has_memcores)} "
+                f"| {pct(lambda i: i['tier'] is not None)} | {pct(lambda i: i['arch'] is not None)} |")
     for kind in ("gpu", "cpu"):
         for vendor in ("Nvidia", "AMD", "Intel"):
             sub = [i for i in items if i["type"] == kind and i["vendor"] == vendor]
             if sub:
                 lines.append(slice_row(f"{vendor} {kind.upper()}", sub))
     lines.append(slice_row("All", items))
-    lines += ["", f"Rows dropped for having no release year: {dropped_no_year}", ""]
-    lines += ["## Per-series counts", "", "| Series | Items | Daily |", "|---|---|---|"]
-    from collections import Counter
+    lines += ["", f"Rows dropped for having no release year: {dropped_no_year}.",
+              f"Rows with a hand override from `overrides.json`: {sum(1 for i in items if i.get('override_source'))}.", ""]
+    lines += ["## Architecture / socket values", ""]
+    for kind in ("gpu", "cpu"):
+        c = Counter(i["arch"] for i in items if i["type"] == kind)
+        lines.append(f"- {kind.upper()}: " + ", ".join(f"{k} ({v})" for k, v in sorted(c.items(), key=lambda x: str(x[0]))))
+    lines += ["", "## Per-series counts", "", "| Series | Items | Daily |", "|---|---|---|"]
     c_all, c_daily = Counter(), Counter()
     for i in items:
         c_all[i["series"]] += 1
         c_daily[i["series"]] += i["daily"]
-    for s in c_all:
-        lines.append(f"| {s} | {c_all[s]} | {c_daily[s]} |")
-    rng = random.Random(42)
-    sample = rng.sample([i for i in items if i["daily"]], 20)
-    lines += ["", "## Twenty rows to hand-check", "",
-              "| ✓ | Name | Year-Mo | MSRP | TDP W | Mem GB / Cores (thr) | Tier | Arch / socket | Series |",
+    for sname in c_all:
+        lines.append(f"| {sname} | {c_all[sname]} | {c_daily[sname]} |")
+
+    header = ["| ✓ | Name | Date | MSRP | Power | Mem / Cores (thr) | Tier | Arch / socket | Series |",
               "|---|---|---|---|---|---|---|---|---|"]
-    for i in sample:
-        mc = f"{i['memory_gb']} GB" if i["type"] == "gpu" else f"{i['cores']} ({i['threads']})"
-        lines.append(f"| [ ] | {i['name']} | {i['year']}-{i['month'] or '??'} | ${i['msrp_usd']} | {i['tdp_w']} | {mc} | {i['tier']} | {i['arch']} | {i['series']} |")
+
+    def row(i):
+        mc = fmt_mem(i["memory_mb"]) if i["type"] == "gpu" else f"{i['cores']} ({i['threads']})"
+        price = f"${i['msrp_usd']}" if i["msrp_usd"] is not None else "—"
+        power = f"{i['power_w']} W {i['power_kind']}" if i["power_w"] is not None else "—"
+        flag = " (OEM)" if i["oem"] else ""
+        return f"| [ ] | {i['name']}{flag} | {fmt_date(i)} | {price} | {power} | {mc} | {i['tier'] if i['tier'] is not None else '—'} | {i['arch'] or '—'} | {i['series']} |"
+    rng = random.Random(42)
+    lines += ["", "## Twenty daily-pool rows to hand-check", ""] + header
+    lines += [row(i) for i in rng.sample([i for i in items if i["daily"]], 20)]
+    lines += ["", "## Ten non-daily rows (check the exclusion is right and the fields are still correct)", ""] + header
+    lines += [row(i) for i in rng.sample([i for i in items if not i["daily"]], 10)]
     lines += ["", "## Sources (exact revisions)", ""]
-    for s in sources:
-        lines.append(f"- [{s['title']}]({s['url']}) revision {s['revid']}")
+    for src in sources:
+        lines.append(f"- [{src['title']}]({src['url']}) revision {src['revid']}")
     (ROOT / "review-sample.md").write_text("\n".join(lines) + "\n")
 
 

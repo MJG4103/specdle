@@ -1,20 +1,39 @@
 # Dataset review sample
 
-Generated 2026-09-05 by `data/build.py`. Twenty rows chosen at random
-(fixed seed) for hand-checking against the Wikipedia tables. Tick each row after checking;
-a wrong value means a parser bug, not a one-off fix, so note what was wrong.
+Generated 2026-09-05 by `data/build.py`.
+
+Two seeded random samples: 20 rows from the **daily pool** (answers the game can pick) and
+10 rows from the **rest** (guessable but never the answer: OEM parts, re-releases, rows
+missing a hint). Check each against the linked Wikipedia revision and, where possible, the
+manufacturer. A wrong value can come from the parser, from Wikipedia, or from a definition
+(announcement vs. availability month, tray vs. boxed price); say which. Parser and
+definition problems get fixed in `build.py`; single source errors go in `overrides.json`
+with a citation.
+
+Conventions: dates are as Wikipedia lists them, with `date_precision` saying whether the
+month is known; quarter-only dates have no month. Price is the launch price in whole USD.
+Power is the manufacturer's rated figure (`power_kind`: TDP, TBP, TGP or base power),
+rounded to whole watts. Memory is exact MB (1 GB = 1024 MB). Tier is a digit taken from
+the model number, not a performance rank. Architecture is per chip for GPUs and the
+socket for CPUs.
 
 ## Coverage
 
-| Slice | Items | Daily pool | Year | MSRP | TDP | Mem/Cores | Tier |
-|---|---|---|---|---|---|---|---|
-| Nvidia GPU | 267 | 146 | 100% | 64% | 97% | 98% | 97% |
-| AMD GPU | 202 | 122 | 100% | 60% | 98% | 100% | 96% |
-| AMD CPU | 143 | 78 | 100% | 54% | 99% | 100% | 98% |
-| Intel CPU | 469 | 446 | 100% | 95% | 100% | 100% | 88% |
-| All | 1081 | 792 | 100% | 75% | 98% | 56% | 93% |
+| Slice | Items | Daily pool | Year | Month known | MSRP | Power | Mem/Cores | Tier | Arch |
+|---|---|---|---|---|---|---|---|---|---|
+| Nvidia GPU | 267 | 146 | 100% | 99% | 64% | 97% | 98% | 97% | 100% |
+| AMD GPU | 202 | 122 | 100% | 99% | 60% | 98% | 100% | 96% | 100% |
+| AMD CPU | 143 | 78 | 100% | 97% | 54% | 99% | 100% | 98% | 100% |
+| Intel CPU | 469 | 446 | 100% | 98% | 95% | 100% | 100% | 88% | 100% |
+| All | 1081 | 792 | 100% | 98% | 75% | 98% | 99% | 93% | 100% |
 
-Rows dropped for having no release year: 17
+Rows dropped for having no release year: 17.
+Rows with a hand override from `overrides.json`: 1.
+
+## Architecture / socket values
+
+- GPU: Ada Lovelace (12), Ampere (16), Blackwell (10), Fermi (51), GCN 1 (44), GCN 2 (12), GCN 3 (7), GCN 4 (17), GCN 5 (4), Kepler (39), Maxwell (12), Pascal (16), RDNA (9), RDNA 2 (15), RDNA 3 (10), RDNA 4 (6), TeraScale (39), TeraScale 2 (35), TeraScale 3 (4), Tesla (96), Turing (14), Volta (1)
+- CPU: AM4 (95), AM5 (48), LGA 1150 (58), LGA 1151 (81), LGA 1155 (57), LGA 1156 (19), LGA 1200 (58), LGA 1366 (11), LGA 1700 (78), LGA 1851 (20), LGA 2011 (7), LGA 2011-3 (7), LGA 2066 (21), LGA 771 (1), LGA 775 (51)
 
 ## Per-series counts
 
@@ -84,30 +103,45 @@ Rows dropped for having no release year: 17
 | GeForce RTX 40 series | 12 | 11 |
 | GeForce RTX 50 series | 10 | 8 |
 
-## Twenty rows to hand-check
+## Twenty daily-pool rows to hand-check
 
-| ✓ | Name | Year-Mo | MSRP | TDP W | Mem GB / Cores (thr) | Tier | Arch / socket | Series |
+| ✓ | Name | Date | MSRP | Power | Mem / Cores (thr) | Tier | Arch / socket | Series |
 |---|---|---|---|---|---|---|---|---|
-| [ ] | GeForce 8800 GTS Core 112 | 2007-11 | $399 | 150 | 0.625 GB | 8 | Tesla | GeForce 8 series |
-| [ ] | Core 2 Quad Q9400 | 2008-8 | $266 | 95 | 4 (4) | None | LGA 775 | Core 2 |
-| [ ] | Ryzen 3 3100 | 2020-4 | $99 | 65 | 4 (8) | 3 | AM4 | Ryzen 3000 series |
-| [ ] | GeForce RTX 3090 | 2020-9 | $1499 | 350 | 24.0 GB | 9 | Ampere | GeForce RTX 30 series |
-| [ ] | Core i3 6300T | 2015-9 | $138 | 35 | 2 (4) | 3 | LGA 1151 | Core i 6th gen |
-| [ ] | Core i5 4460 | 2014-5 | $182 | 84 | 4 (4) | 5 | LGA 1150 | Core i 4th gen |
-| [ ] | Core i7 4770K | 2013-6 | $350 | 84 | 4 (8) | 7 | LGA 1150 | Core i 4th gen |
-| [ ] | Core i5 670 | 2010-1 | $284 | 73 | 2 (4) | 5 | LGA 1156 | Core i 1st gen |
-| [ ] | GeForce RTX 2070 SUPER | 2019-7 | $499 | 215 | 8.0 GB | 7 | Turing | GeForce RTX 20 series |
-| [ ] | Core 2 Extreme QX9770 | 2008-3 | $1399 | 136 | 4 (4) | None | LGA 775 | Core 2 |
-| [ ] | GeForce GT 520 | 2011-4 | $59 | 29 | 1.0 GB | 2 | Fermi | GeForce 500 series |
-| [ ] | GeForce RTX 3080 | 2020-9 | $699 | 320 | 10.0 GB | 8 | Ampere | GeForce RTX 30 series |
-| [ ] | Radeon HD 6350 | 2011-4 | $23 | 19 | 0.5 GB | 3 | TeraScale 2/3 | Radeon HD 6000 series |
-| [ ] | Core 2 Extreme QX6800 | 2007-4 | $1199 | 130 | 4 (4) | None | LGA 775 | Core 2 |
-| [ ] | Radeon RX 470 | 2016-8 | $179 | 120 | 4.0 GB | 7 | Polaris | Radeon 400 series |
-| [ ] | Core i5 12600KF | 2021-11 | $264 | 125 | 10 (16) | 5 | LGA 1700 | Core i 12th gen |
-| [ ] | Ryzen 7 5800X | 2020-11 | $449 | 105 | 8 (16) | 7 | AM4 | Ryzen 5000 series |
-| [ ] | Ryzen 9 3900XT | 2020-7 | $499 | 105 | 12 (24) | 9 | AM4 | Ryzen 3000 series |
-| [ ] | Core 2 Extreme QX6850 | 2007-7 | $999 | 130 | 4 (4) | None | LGA 775 | Core 2 |
-| [ ] | Core i5 4670K | 2013-6 | $242 | 84 | 4 (4) | 5 | LGA 1150 | Core i 4th gen |
+| [ ] | GeForce 8800 GTS Core 112 | 2007-11 | $399 | 150 W TDP | 640 MB | 8 | Tesla | GeForce 8 series |
+| [ ] | Core 2 Quad Q9400 | 2008-08 | $266 | 95 W TDP | 4 (4) | — | LGA 775 | Core 2 |
+| [ ] | Ryzen 3 3300X | 2020-04 | $119 | 65 W TDP | 4 (8) | 3 | AM4 | Ryzen 3000 series |
+| [ ] | GeForce RTX 3090 | 2020-09 | $1499 | 350 W TDP | 24 GB | 9 | Ampere | GeForce RTX 30 series |
+| [ ] | Core i3 6300T | 2015-09 | $138 | 35 W TDP | 2 (4) | 3 | LGA 1151 | Core i 6th gen |
+| [ ] | Core i5 4460 | 2014-05 | $182 | 84 W TDP | 4 (4) | 5 | LGA 1150 | Core i 4th gen |
+| [ ] | Core i7 4770K | 2013-06 | $350 | 84 W TDP | 4 (8) | 7 | LGA 1150 | Core i 4th gen |
+| [ ] | Core i5 670 | 2010-01 | $284 | 73 W TDP | 2 (4) | 5 | LGA 1156 | Core i 1st gen |
+| [ ] | GeForce RTX 2070 SUPER | 2019-07 | $499 | 215 W TDP | 8 GB | 7 | Turing | GeForce RTX 20 series |
+| [ ] | Core 2 Extreme QX9770 | 2008-03 | $1399 | 136 W TDP | 4 (4) | — | LGA 775 | Core 2 |
+| [ ] | GeForce GT 520 | 2011-04 | $59 | 29 W TDP | 1 GB | 2 | Fermi | GeForce 500 series |
+| [ ] | GeForce RTX 3080 | 2020-09 | $699 | 320 W TDP | 10 GB | 8 | Ampere | GeForce RTX 30 series |
+| [ ] | Radeon HD 6350 | 2011-04 | $23 | 19 W TDP | 512 MB | 3 | TeraScale 2 | Radeon HD 6000 series |
+| [ ] | Core 2 Extreme QX6800 | 2007-04 | $1199 | 130 W TDP | 4 (4) | — | LGA 775 | Core 2 |
+| [ ] | Radeon RX 470 | 2016-08 | $179 | 120 W TBP | 4 GB | 7 | GCN 4 | Radeon 400 series |
+| [ ] | Core i5 12600KF | 2021-11 | $264 | 125 W base power | 10 (16) | 5 | LGA 1700 | Core i 12th gen |
+| [ ] | Ryzen 7 5800X | 2020-11 | $449 | 105 W TDP | 8 (16) | 7 | AM4 | Ryzen 5000 series |
+| [ ] | Ryzen 9 3900XT | 2020-07 | $499 | 105 W TDP | 12 (24) | 9 | AM4 | Ryzen 3000 series |
+| [ ] | Core 2 Extreme QX6850 | 2007-07 | $999 | 130 W TDP | 4 (4) | — | LGA 775 | Core 2 |
+| [ ] | Core i5 4670K | 2013-06 | $242 | 84 W TDP | 4 (4) | 5 | LGA 1150 | Core i 4th gen |
+
+## Ten non-daily rows (check the exclusion is right and the fields are still correct)
+
+| ✓ | Name | Date | MSRP | Power | Mem / Cores (thr) | Tier | Arch / socket | Series |
+|---|---|---|---|---|---|---|---|---|
+| [ ] | Radeon HD 8470 | 2013-01 | — | 35 W TDP | 1 GB | 4 | TeraScale 2 | Radeon HD 8000 series |
+| [ ] | GeForce GTX 660 OEM (OEM) | 2012-08 | — | 130 W TDP | 1536 MB | 6 | Kepler | GeForce 600 series |
+| [ ] | Ryzen 3 3200GE (OEM) | 2019-07 | — | 35 W TDP | 4 (4) | 3 | AM4 | Ryzen 3000 series (APU) |
+| [ ] | GeForce RTX 5090 D | 2025-01 | $2299 | 575 W TDP | 32 GB | 9 | Blackwell | GeForce RTX 50 series |
+| [ ] | Radeon HD 4730 | 2009-06 | — | 110 W TDP | 512 MB | 7 | TeraScale | Radeon HD 4000 series |
+| [ ] | GeForce GTX 950 OEM (OEM) | 2016 | — | — | 2 GB | 5 | Maxwell | GeForce 900 series |
+| [ ] | GeForce GTS 240 OEM (OEM) | 2009-07 | — | 120 W TDP | 1 GB | 4 | Tesla | GeForce 200 series |
+| [ ] | Radeon HD 7350 (OEM) | 2012-01 | — | 19 W TDP | 256 MB | 3 | TeraScale 2 | Radeon HD 7000 series |
+| [ ] | GeForce GT 415 OEM (OEM) | 2010-09 | — | 32 W TDP | 512 MB | 1 | Tesla | GeForce 400 series |
+| [ ] | Radeon R9 370 (OEM) | 2015-05 | — | 150 W TBP | 2 GB | 7 | GCN 1 | Radeon 300 series |
 
 ## Sources (exact revisions)
 

@@ -1,0 +1,11 @@
+{
+ "amd-ryzen-3-3100": {
+  "fields": {
+   "month": 5,
+   "quarter": 2,
+   "date_precision": "month"
+  },
+  "source": "https://www.amd.com/en/newsroom/press-releases/2020-4-21-amd-expands-3rd-gen-amd-ryzen-desktop-processor-fa.html",
+  "note": "Wikipedia lists the April 21, 2020 announcement; AMD's release states May availability. Dataset convention is availability month."
+ }
+}
