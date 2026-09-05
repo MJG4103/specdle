@@ -17,13 +17,14 @@ Longview Automation is the business and its plan does not change because of anyt
 | `data/build.py` | Evening 1: pulls the Wikipedia tables via the MediaWiki API and writes `data/items.json` |
 | `data/items.json` | The dataset: desktop GPUs (2006+) and CPUs (2006+), one row per part, CC BY-SA 4.0 |
 | `data/review-sample.md` | Coverage table and 20 random rows for hand-checking, regenerated each build |
-| `data/LICENSE.md` | CC BY-SA attribution for the derived dataset and the trademark note |
+| `data/LICENSE.md` | CC BY-SA attribution, field conventions, and the trademark note |
+| `data/overrides.json` | Cited hand corrections, verifications and disputes, applied on every build |
 
 ## Status (2026-09-05)
 
 - Research done. **Idea #1 approved. Working name: Specdle.** Nothing bought.
-- Evening 1 done: `data/build.py` builds the dataset from Wikipedia. Waiting on Tyler to tick
-  the 20 rows in `data/review-sample.md`.
+- Evening 1 done: `data/build.py` builds the dataset from Wikipedia. Two external fact reviews
+  of `data/review-sample.md` acted on; conventions in `data/LICENSE.md`.
 - Next: Evening 2, the game UI (Vite + React + Tailwind, see `gpu-game/research.md` §7).
 
 ## Running the dataset build

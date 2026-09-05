@@ -5,7 +5,42 @@
    "quarter": 2,
    "date_precision": "month"
   },
+  "verified": [
+   "month",
+   "msrp_usd",
+   "cores",
+   "threads",
+   "power_w",
+   "arch"
+  ],
   "source": "https://www.amd.com/en/newsroom/press-releases/2020-4-21-amd-expands-3rd-gen-amd-ryzen-desktop-processor-fa.html",
-  "note": "Wikipedia lists the April 21, 2020 announcement; AMD's release states May availability. Dataset convention is availability month."
+  "note": "Wikipedia lists the April 21, 2020 announcement; AMD's release states May availability, $99, 4C/8T, 65 W, AM4."
+ },
+ "amd-ryzen-3-3300x": {
+  "fields": {
+   "month": 5,
+   "quarter": 2,
+   "date_precision": "month",
+   "msrp_usd": 120
+  },
+  "verified": [
+   "month",
+   "msrp_usd",
+   "cores",
+   "threads",
+   "power_w",
+   "arch"
+  ],
+  "source": "https://www.amd.com/en/newsroom/press-releases/2020-4-21-amd-expands-3rd-gen-amd-ryzen-desktop-processor-fa.html",
+  "note": "Wikipedia has April and $119; AMD's release states May availability and $120."
+ },
+ "amd-radeon-hd-6350": {
+  "disputed": [
+   "month",
+   "msrp_usd",
+   "power_w"
+  ],
+  "source": "https://efiling.energy.ca.gov/GetDocument.aspx?DocumentContentId=7743&tn=70852",
+  "note": "Wikipedia: April 7, 2011, $23, 19.1 W. An NRDC filing gives February 7, 2011; no manufacturer MSRP found; an HP board sheet gives 19.9 W. Kept out of the answer pool until resolved."
  }
 }
