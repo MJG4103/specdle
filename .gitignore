@@ -7,3 +7,4 @@ dist/
 .venv/
 data/raw/
 __pycache__/
+public/items.json

@@ -25,7 +25,44 @@ Longview Automation is the business and its plan does not change because of anyt
 - Research done. **Idea #1 approved. Working name: Specdle.** Nothing bought.
 - Evening 1 done: `data/build.py` builds the dataset from Wikipedia. Two external fact reviews
   of `data/review-sample.md` acted on; conventions in `data/LICENSE.md`.
-- Next: Evening 2, the game UI (Vite + React + Tailwind, see `gpu-game/research.md` §7).
+- Evenings 2–4 compressed into one day on Tyler's call: game built, deployed to Azure Static
+  Web Apps Free (`specdle-rg` / `specdle`), launch checklist below.
+
+## Running the game locally
+
+```sh
+npm install
+npm test        # hint logic, share text, search, streaks
+npm run dev     # http://localhost:5173
+npm run build   # dist/ (the deploy workflow does this on push to main)
+```
+
+Layout: `src/game/` is the logic (pure functions, tested), `src/components/` and `src/pages/`
+the UI, `src/config.js` the launch-time switches (site URL, Amazon tag, GoatCounter code).
+The dataset and schedule are imported straight from `data/`, so a dataset rebuild plus a
+commit is a content update. Hash routes: `#/`, `#/day/YYYY-MM-DD`, `#/archive`, `#/data`,
+`#/privacy`.
+
+## Launch checklist
+
+| Step | Owner | Status |
+|---|---|---|
+| Azure SWA Free created (`specdle-rg`, `specdle`) | done | ✓ |
+| GitHub repo + deploy workflow + token secret | Claude, after `gh auth login` | |
+| First deploy to the azurestaticapps.net URL | Claude | |
+| Buy `specdle.com` (~$12/yr) and add it as a custom domain | Tyler | |
+| Set `SITE_URL`/`CONTACT_EMAIL` in `src/config.js` once the domain is live | Claude | |
+| Amazon Associates account; set `AMAZON_TAG` | Tyler, then Claude | |
+| GoatCounter account (free); set `GOATCOUNTER_CODE` | Tyler, then Claude | |
+| Submit to dles.gg, dlegames.org, alldle.net, listdle.com, dailydle.org | Tyler | |
+| Post once to LTT forum, Show HN; r/pcmasterrace only after weeks of real participation | Tyler | |
+| Journey by Mediavine application at 1,000 sessions/month | Tyler | |
+
+## The 60-day gate (written before launch, per the rules)
+
+Day 60 after launch: fewer than 300 daily players → stop investing, leave it running.
+More → build the second mode and the phone dataset, apply to Journey. Track four numbers:
+daily players, share clicks, affiliate clicks, directory referrals (all in GoatCounter).
 
 ## Running the dataset build
 
