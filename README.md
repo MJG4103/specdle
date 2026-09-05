@@ -49,7 +49,7 @@ commit is a content update. Hash routes: `#/`, `#/day/YYYY-MM-DD`, `#/archive`, 
 | Step | Owner | Status |
 |---|---|---|
 | Azure SWA Free created (`specdle-rg`, `specdle`) | done | ✓ |
-| GitHub repo + deploy workflow + token secret | Claude, after `gh auth login` | pending |
+| GitHub repo + deploy workflow + token secret | done | ✓ https://github.com/MJG4103/specdle, every push to `main` deploys |
 | First deploy to the azurestaticapps.net URL | Claude | ✓ 2026-09-05, live at https://jolly-mud-0788fde0f.6.azurestaticapps.net (deployed with the SWA CLI; Actions takes over once the repo exists) |
 | Buy `specdle.com` (~$12/yr) and add it as a custom domain | Tyler | |
 | Set `SITE_URL`/`CONTACT_EMAIL` in `src/config.js` once the domain is live | Claude | |
