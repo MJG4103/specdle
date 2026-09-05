@@ -16,8 +16,9 @@ export function cellEmoji(cell) {
   return cell.dir ? EMOJI[cell.dir] : EMOJI.far;
 }
 
-export function shareText({ number, type, rows, won }) {
+export function shareText({ number, type, rows, won, streak = 0 }) {
   const score = won ? `${rows.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`;
+  const streakText = won && streak >= 2 ? ` · 🔥 ${streak}-day streak` : "";
   const grid = rows.map((row) => row.map(cellEmoji).join("")).join("\n");
-  return `${SITE_NAME} #${number} ${type.toUpperCase()} ${score}\n${grid}\n${SITE_URL}`;
+  return `${SITE_NAME} #${number} ${type.toUpperCase()} ${score}${streakText}\n${grid}\n${SITE_URL}`;
 }

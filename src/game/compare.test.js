@@ -63,6 +63,12 @@ describe("shareText", () => {
     expect(lines[2]).toBe("🟩🟩🟩🟩🟩🟩🟩");
     expect(lines[3]).toMatch(/^https:\/\//);
   });
+  it("adds the streak only on a win with a streak of two or more", () => {
+    const rows = [compareGuess(rtx3080, rtx3080)];
+    expect(shareText({ number: 5, type: "gpu", rows, won: true, streak: 7 }).split("\n")[0]).toBe("Specdle #5 GPU 1/8 · 🔥 7-day streak");
+    expect(shareText({ number: 5, type: "gpu", rows, won: true, streak: 1 }).split("\n")[0]).toBe("Specdle #5 GPU 1/8");
+    expect(shareText({ number: 5, type: "gpu", rows, won: false, streak: 7 }).split("\n")[0]).toBe("Specdle #5 GPU X/8");
+  });
   it("shows X on a loss and a white square for unknown", () => {
     expect(shareText({ number: 1, type: "cpu", rows: [], won: false })).toMatch(/CPU X\/8/);
     expect(cellEmoji({ state: "unknown" })).toBe("⬜");

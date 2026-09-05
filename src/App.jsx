@@ -53,7 +53,7 @@ export default function App() {
     const inRange = dayDiff(START_DATE, key) >= 0 && dayDiff(key, today) >= 0;
     const puzzle = inRange ? puzzleFor(key) : null;
     page = puzzle
-      ? <Game puzzle={puzzle} isToday={key === today} todayKey={today} yesterdayKey={yesterday} onStats={setStats} />
+      ? <Game puzzle={puzzle} isToday={key === today} todayKey={today} yesterdayKey={yesterday} onStats={setStats} streak={streak} />
       : <p className="text-sm text-zinc-500">{dayDiff(START_DATE, today) < 0 ? `First puzzle on ${START_DATE}.` : "No puzzle for that date."}</p>;
   }
 

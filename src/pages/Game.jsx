@@ -13,7 +13,7 @@ import { track } from "../analytics.js";
  * One puzzle. `isToday` decides whether the result counts toward stats and streaks.
  * State: the list of guessed ids for this date, persisted on every change.
  */
-export default function Game({ puzzle, isToday, todayKey, yesterdayKey, onStats }) {
+export default function Game({ puzzle, isToday, todayKey, yesterdayKey, onStats, streak = 0 }) {
   const { answer, type, number, dateKey } = puzzle;
   const [day, setDay] = useState(() => loadDay(dateKey));
   const [copied, setCopied] = useState(false);
@@ -46,7 +46,7 @@ export default function Game({ puzzle, isToday, todayKey, yesterdayKey, onStats 
   }, [day, answer, dateKey, isToday, yesterdayKey, onStats, type]);
 
   async function share() {
-    const text = shareText({ number, type, rows, won: day.won });
+    const text = shareText({ number, type, rows, won: day.won, streak: isToday ? streak : 0 });
     track("share", { type });
     try {
       if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
