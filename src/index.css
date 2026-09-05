@@ -10,3 +10,16 @@
   100% { transform: scale(1); opacity: 1; }
 }
 .cell-pop { animation: pop 220ms ease-out both; }
+
+/* Soft vignette over the circuit background so the centre stays calm and readable. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -5;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 70% at 50% 35%, rgba(250, 250, 250, 0.55), rgba(250, 250, 250, 0) 70%);
+}
+@media (prefers-color-scheme: dark) {
+  body::before { background: radial-gradient(ellipse 60% 70% at 50% 35%, rgba(9, 9, 11, 0.6), rgba(9, 9, 11, 0) 70%); }
+}

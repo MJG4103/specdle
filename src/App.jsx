@@ -9,6 +9,7 @@ import Privacy from "./pages/Privacy.jsx";
 import StatsModal from "./components/StatsModal.jsx";
 import HelpModal from "./components/HelpModal.jsx";
 import { installAnalytics } from "./analytics.js";
+import TechBackground from "./components/TechBackground.jsx";
 
 /** Tiny hash router: #/ play today, #/day/YYYY-MM-DD, #/archive, #/data, #/privacy. */
 function useHash() {
@@ -58,7 +59,8 @@ export default function App() {
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4">
-      <header className="flex items-center justify-between border-b border-zinc-200 py-3 dark:border-zinc-800">
+      <TechBackground />
+      <header className="flex items-center justify-between border-b border-zinc-200/70 py-3 dark:border-zinc-800/70">
         <button onClick={() => setModal("help")} aria-label="How to play" className="rounded px-2 py-1 text-lg hover:bg-zinc-100 dark:hover:bg-zinc-800">?</button>
         <a href="#/" className="text-2xl font-black tracking-tight">{SITE_NAME}</a>
         <div className="flex gap-1">

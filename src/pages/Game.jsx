@@ -17,6 +17,7 @@ export default function Game({ puzzle, isToday, todayKey, yesterdayKey, onStats 
   const { answer, type, number, dateKey } = puzzle;
   const [day, setDay] = useState(() => loadDay(dateKey));
   const [copied, setCopied] = useState(false);
+  const [fallbackText, setFallbackText] = useState(null);
   const [lastAdded, setLastAdded] = useState(null);
 
   useEffect(() => { setDay(loadDay(dateKey)); setLastAdded(null); }, [dateKey]);
@@ -56,7 +57,7 @@ export default function Game({ puzzle, isToday, todayKey, yesterdayKey, onStats 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt("Copy your result:", text);
+      setFallbackText(text);   // clipboard blocked: show the text so it can be copied by hand
     }
   }
 
@@ -88,13 +89,13 @@ export default function Game({ puzzle, isToday, todayKey, yesterdayKey, onStats 
       </ol>
 
       {day.done && (
-        <Result answer={answer} won={day.won} guessCount={guesses.length} onShare={share} copied={copied} />
+        <Result answer={answer} won={day.won} guessCount={guesses.length} onShare={share} copied={copied} fallbackText={fallbackText} />
       )}
     </section>
   );
 }
 
-function Result({ answer, won, guessCount, onShare, copied }) {
+function Result({ answer, won, guessCount, onShare, copied, fallbackText }) {
   const specs = answer.type === "gpu"
     ? [["Released", `${answer.month ? answer.month + "/" : ""}${answer.year}`], ["Launch price", formatPrice(answer.msrp_usd)], ["VRAM", formatMemory(answer.memory_mb)], ["Rated power", `${answer.power_w} W`], ["Tier", formatTier(answer)], ["Architecture", answer.arch]]
     : [["Released", `${answer.month ? answer.month + "/" : ""}${answer.year}`], ["Launch price", formatPrice(answer.msrp_usd)], ["Cores / threads", `${answer.cores} / ${answer.threads}`], ["Rated power", `${answer.power_w} W`], ["Tier", formatTier(answer)], ["Socket", answer.arch]];
@@ -118,6 +119,9 @@ function Result({ answer, won, guessCount, onShare, copied }) {
           </a>
         )}
       </div>
+      {fallbackText && (
+        <pre className="mt-3 select-all whitespace-pre-wrap rounded bg-zinc-100 p-2 text-xs dark:bg-zinc-800" onClick={(e) => { const r = document.createRange(); r.selectNodeContents(e.currentTarget); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }}>{fallbackText}</pre>
+      )}
       {amazon && <p className="mt-2 text-xs text-zinc-500">As an Amazon Associate, Specdle earns from qualifying purchases.</p>}
       <p className="mt-3 text-xs text-zinc-500">Next puzzle at midnight, your time.</p>
     </div>
