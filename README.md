@@ -25,8 +25,9 @@ Longview Automation is the business and its plan does not change because of anyt
 - Research done. **Idea #1 approved. Working name: Specdle.** Nothing bought.
 - Evening 1 done: `data/build.py` builds the dataset from Wikipedia. Two external fact reviews
   of `data/review-sample.md` acted on; conventions in `data/LICENSE.md`.
-- Evenings 2–4 compressed into one day on Tyler's call: game built, deployed to Azure Static
-  Web Apps Free (`specdle-rg` / `specdle`), launch checklist below.
+- Evenings 2–4 compressed into one day on Tyler's call. **Live 2026-09-05** at
+  https://jolly-mud-0788fde0f.6.azurestaticapps.net (Azure SWA Free, `specdle-rg` / `specdle`).
+  Launch checklist below.
 
 ## Running the game locally
 
@@ -48,8 +49,8 @@ commit is a content update. Hash routes: `#/`, `#/day/YYYY-MM-DD`, `#/archive`, 
 | Step | Owner | Status |
 |---|---|---|
 | Azure SWA Free created (`specdle-rg`, `specdle`) | done | ✓ |
-| GitHub repo + deploy workflow + token secret | Claude, after `gh auth login` | |
-| First deploy to the azurestaticapps.net URL | Claude | |
+| GitHub repo + deploy workflow + token secret | Claude, after `gh auth login` | pending |
+| First deploy to the azurestaticapps.net URL | Claude | ✓ 2026-09-05, live at https://jolly-mud-0788fde0f.6.azurestaticapps.net (deployed with the SWA CLI; Actions takes over once the repo exists) |
 | Buy `specdle.com` (~$12/yr) and add it as a custom domain | Tyler | |
 | Set `SITE_URL`/`CONTACT_EMAIL` in `src/config.js` once the domain is live | Claude | |
 | Amazon Associates account; set `AMAZON_TAG` | Tyler, then Claude | |
