@@ -51,8 +51,8 @@ commit is a content update. Hash routes: `#/`, `#/day/YYYY-MM-DD`, `#/archive`, 
 | Azure SWA Free created (`specdle-rg`, `specdle`) | done | ✓ |
 | GitHub repo + deploy workflow + token secret | done | ✓ https://github.com/MJG4103/specdle, every push to `main` deploys |
 | First deploy to the azurestaticapps.net URL | Claude | ✓ 2026-09-05, live at https://jolly-mud-0788fde0f.6.azurestaticapps.net (deployed with the SWA CLI; Actions takes over once the repo exists) |
-| Buy `specdle.com` (~$12/yr) and add it as a custom domain | Tyler | |
-| Set `SITE_URL`/`CONTACT_EMAIL` in `src/config.js` once the domain is live | Claude | |
+| Buy `specdle.com` (~$12/yr) and add it as a custom domain | done | ✓ Cloudflare Registrar, $10.46/yr, auto-renew; DNS on Cloudflare (DNS only, not proxied) |
+| Set `SITE_URL` in `src/config.js` once the domain is live | done | ✓ |
 | Amazon Associates account; set `AMAZON_TAG` | Tyler, then Claude | |
 | GoatCounter account (free); set `GOATCOUNTER_CODE` | Tyler, then Claude | |
 | Submit to dles.gg, dlegames.org, alldle.net, listdle.com, dailydle.org | Tyler | |
