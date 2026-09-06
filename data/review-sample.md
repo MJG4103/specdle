@@ -36,6 +36,11 @@ digit from the model number, not a performance rank.
 | Intel CPU | 469 | 446 | 100% | 98% | 95% | 100% | 100% | 88% | 100% |
 | All | 1081 | 790 | 100% | 98% | 75% | 98% | 99% | 93% | 100% |
 
+Extended fields (tools pages, not game hints), share of rows with a value:
+
+- GPU: fp32_tflops 91%, bandwidth_gbs 86%, bus_width_bit 100%, clock_mhz 100%, boost_mhz 21%, memory_type 100%, transistors_m 99%, die_mm2 97%, fab_nm 67%, bus_interface 95%
+- CPU: clock_ghz 100%, boost_ghz 80%, cache_mb 100%, power_max_w 16%, igpu 49%
+
 Rows dropped for having no release year: 17.
 Rows with a hand override from `overrides.json`: 3; with a disputed field (never an answer): 1; priced only in a non-USD currency: 11.
 

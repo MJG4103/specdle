@@ -64,11 +64,43 @@ Conventions:
   with a citation, applied after parsing so a rebuild keeps them. Affected rows carry
   `override_source`.
 
+- **Extended fields** (added 2026-09-05 for the tools pages; the game does not use them).
+  GPUs: `fp32_tflops` (the table's single-precision figure, largest number in the cell where
+  a base and boost pair is given, converted from GFLOPS where needed), `bandwidth_gbs` (first
+  figure where variants are listed), `bus_width_bit`, `clock_mhz` and `boost_mhz` (core
+  clock; boost only where the table gives one), `memory_type` (GDDR6, HBM2 …),
+  `transistors_m` (millions), `die_mm2`, `fab_nm` (from a fab column, or TSMC's N-number
+  read as its nanometre class), `bus_interface` (the table's text). CPUs: `clock_ghz` and
+  `boost_ghz` (P-core figures on hybrid parts; the Ryzen 1000 "PBO" column stands in for
+  boost), `cache_mb` with `cache_column` (L3 / Smart Cache, or L2 on Core 2 where that is
+  the last-level cache), `power_max_w` (Intel's "Max. Turbo" power where the table has it),
+  `igpu` (the integrated graphics model as written). All source-only unless verified.
+
+## Companion datasets in this folder
+
+- **`perf.json`** — Blender rendering scores, derived from
+  [Blender Open Data](https://opendata.blender.org/) (Blender Foundation), whose results are
+  released under **CC0 1.0** (the LICENSE.txt inside each snapshot). No attribution is
+  required; it is given anyway. `blender_perf.py` documents the method: median of the summed
+  samples-per-minute over the three benchmark scenes, single-device runs only, grouped by
+  Blender major version, at least five runs per device. The join to `items.json` is by
+  normalised device name plus the hand map in `perf-overrides.json`. **A Blender score is a
+  rendering score.** It is not a gaming benchmark and must never be presented as one.
+- **`cpi.json`** — calendar-year averages of the Consumer Price Index for All Urban
+  Consumers (CPIAUCSL), a work of the U.S. Bureau of Labor Statistics served by FRED (Federal
+  Reserve Bank of St. Louis): **public domain**. "Launch price in today's dollars" divides
+  the latest year's average by the launch year's average; the latest year is usually partial
+  and `latest_months` says by how much.
+
+Because `perf.json` and `cpi.json` are not derived from Wikipedia, they are not under the
+ShareAlike obligation; both are published here under the same terms as their sources (CC0
+and public domain respectively).
+
 ## Not included, on purpose
 
-Performance scores (PassMark, 3DMark, UserBenchmark), TechPowerUp database fields, product
-photos, box art, and die shots. Those are proprietary or of unclear license, and the game
-does not use them.
+Performance scores from PassMark, 3DMark, UserBenchmark, Geekbench or review sites, TechPowerUp
+database fields, product photos, box art, and die shots. Those are proprietary or of unclear
+license. The only performance figure here is the CC0 Blender score above.
 
 ## Trademarks
 

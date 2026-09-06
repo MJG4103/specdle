@@ -1,0 +1,10 @@
+{
+ "_comment": "Blender Open Data device string -> items.json id. null = ignore on purpose (integrated graphics, parts not in the dataset). Everything else is matched by name automatically; add a line here only when the automatic match is wrong or missing.",
+ "AMD Radeon(TM) Graphics": null,
+ "AMD Radeon Graphics": null,
+ "Intel(R) Arc(TM) A750 Graphics": null,
+ "Intel(R) Arc(TM) A770 Graphics": null,
+ "Intel(R) Arc(TM) B580 Graphics": null,
+ "Intel(R) Arc(TM) B570 Graphics": null,
+ "Intel(R) Arc(TM) A380 Graphics": null
+}

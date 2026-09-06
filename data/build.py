@@ -361,6 +361,119 @@ def parse_cores(cells: list[str | None]) -> tuple[int | None, int | None]:
     return (cores, threads) if seen else (None, None)
 
 
+def parse_numbers(s: str | None) -> list[float]:
+    return [float(x) for x in re.findall(r"\d+(?:\.\d+)?", (s or "").replace(",", ""))]
+
+
+def parse_clock_pair(s: str | None) -> tuple[int | None, int | None]:
+    """'1026 (1190)' -> (1026, 1190); '1100' -> (1100, None); '650 650 650' (variants) -> (650, None)."""
+    if not s:
+        return None, None
+    m = re.match(r"\s*(\d{3,4})\s*\(\s*(\d{3,4})\s*\)", s)
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    nums = [n for n in parse_numbers(s) if 100 <= n <= 5000]
+    return (round(nums[0]) if nums else None), None
+
+
+def parse_ghz(s: str | None) -> float | None:
+    """'3.6', '1.8 GHz', '4.0 (3.7)' -> first plausible GHz figure."""
+    nums = [n for n in parse_numbers(s) if 0.5 <= n <= 7.0]
+    return nums[0] if nums else None
+
+
+def parse_fp32_tflops(s: str | None, header: str) -> float | None:
+    """Largest figure in the cell (tables give 'base (boost)'; boost is the marketed number),
+    converted to TFLOPS by the header's unit."""
+    nums = parse_numbers(s)
+    if not nums:
+        return None
+    v = max(nums)
+    if "gflops" in header.lower():
+        v /= 1000
+    return round(v, 2) if 0.01 <= v <= 500 else None
+
+
+def parse_transistors_m(s: str | None, header: str) -> int | None:
+    """-> millions. Handles 'Transistors (million)' 210; 'Transistors (billion)' 2.94; AMD's
+    merged cell '53.9 billion 356.5 mm'; '1.7×10 …' and '1700×10 …' where the table wrote
+    ×10⁹ or ×10⁶ and the exponent was lost in parsing (a mantissa under 100 can only be
+    billions for any 2006+ part, 100 or more can only be millions); dual-GPU boards
+    '2× 1,400' are summed."""
+    if not s:
+        return None
+    mult = 1
+    dual = re.match(r"\s*(\d)\s*[×x]\s*(?=\d)", s)
+    if dual:
+        mult = int(dual.group(1))
+        s = s[dual.end():]
+    text = (header + " " + s).lower()
+    m = re.search(r"(\d+(?:\.\d+)?)\s*[×x]\s*10", s)
+    if m:
+        v = float(m.group(1))
+        return round(v * (1000 if v < 100 else 1) * mult)
+    nums = parse_numbers(s)
+    if not nums:
+        return None
+    v = nums[0]
+    if "billion" in text:
+        return round(v * 1000 * mult)
+    if "million" in text:
+        return round(v * mult)
+    # unlabeled: same mantissa rule
+    return round(v * (1000 if v < 100 else 1) * mult)
+
+
+def parse_die_mm2(s: str | None) -> float | None:
+    if not s:
+        return None
+    m = re.search(r"(\d+(?:\.\d+)?)\s*mm", s)
+    if m:
+        return float(m.group(1))
+    nums = parse_numbers(s)
+    return nums[0] if nums and 20 <= nums[0] <= 1000 and "×10" not in s else None
+
+
+def parse_bus_width(s: str | None) -> int | None:
+    if not s:
+        return None
+    m = re.search(r"(\d{2,4})\s*-?\s*bit", s, re.I)
+    if m:
+        return int(m.group(1))
+    nums = [round(n) for n in parse_numbers(s) if n in (32, 64, 96, 128, 160, 192, 256, 320, 352, 384, 448, 512, 1024, 2048, 3072, 4096, 5120, 6144)]
+    return nums[0] if nums else None
+
+
+MEMORY_TYPE = re.compile(r"\b(HBM\d?[eE]?\d?|G?DDR\d[A-Z]*)\b")
+
+
+def parse_memory_type(s: str | None) -> str | None:
+    m = MEMORY_TYPE.search(s or "")
+    return m.group(1) if m else None
+
+
+def parse_cache_mb(s: str | None) -> float | None:
+    """'8 MB' -> 8.0; '512 KB' -> 0.5; '36 MB' -> 36.0. First figure only."""
+    if not s:
+        return None
+    m = re.search(r"(\d+(?:\.\d+)?)\s*(MB|KB|MiB|KiB)", s, re.I)
+    if not m:
+        return None
+    v = float(m.group(1))
+    return round(v / 1024, 3) if m.group(2).lower().startswith("k") else v
+
+
+def parse_fab_nm(s: str | None) -> int | None:
+    """'40', 'TSMC 80 nm', 'RDNA 3 TSMC N6' (TSMC's N6 = 6 nm class)."""
+    if not s:
+        return None
+    m = re.search(r"(\d+)\s*nm", s, re.I) or re.search(r"\bN(\d+)[A-Z]?\b", s)
+    if m:
+        return int(m.group(1))
+    nums = [round(n) for n in parse_numbers(s) if 2 <= n <= 130]
+    return nums[0] if nums else None
+
+
 def gpu_tier(name: str, vendor: str) -> int | None:
     """0-9 from the model number, following each vendor's naming scheme.
     Nvidia: 3-digit (GTX 970, GTX 280) -> second digit; legacy 4-digit 8xxx/9xxx
@@ -413,10 +526,12 @@ def slug(s: str) -> str:
 def pick(cols: list[str], must: list[str], forbid: list[str] = (), prefer: list[str] = ()) -> str | None:
     """First header containing every `must` word and no `forbid` word; among several,
     the first that also contains a `prefer` word wins."""
-    hits = [c for c in cols if all(w in c.lower() for w in must) and not any(w in c.lower() for w in forbid)]
+    # Wikipedia headers carry non-breaking spaces ("Processing\xa0Power"); match on plain spaces.
+    norm = lambda c: c.lower().replace("\xa0", " ")
+    hits = [c for c in cols if all(w in norm(c) for w in must) and not any(w in norm(c) for w in forbid)]
     for w in prefer:
         for c in hits:
-            if w in c.lower():
+            if w in norm(c):
                 return c
     return hits[0] if hits else None
 
@@ -447,8 +562,30 @@ def map_columns(cols: list[str], kind: str) -> dict:
     m["socket"] = pick(cols, ["socket"])
     if kind == "gpu":
         m["memory"] = pick(cols, ["memory", "size"], forbid=["cache", "bandwidth"])
+        # Extended fields (tools pages). Absent columns simply leave the field None.
+        m["fab"] = pick(cols, ["fab (nm)"]) or pick(cols, ["architecture & fab"])
+        m["transistors"] = pick(cols, ["transistors"])
+        m["die"] = pick(cols, ["die size"]) or pick(cols, ["die (mm"])
+        m["bus_width"] = pick(cols, ["bus width"]) or pick(cols, ["bus type & width"])
+        m["bandwidth"] = pick(cols, ["memory", "bandwidth"], forbid=["infinity", "cache"]) or pick(cols, ["bandwidth"], forbid=["infinity", "cache"])
+        m["fp32"] = pick(cols, ["processing power", "single"]) or pick(cols, ["processing power", "fp32"])
+        m["clock"] = (pick(cols, ["clock", "core"], forbid=["memory", "shader"])
+                      or pick(cols, ["clock", "base"], forbid=["memory", "shader"]))
+        m["memory_type"] = pick(cols, ["bus type"]) or pick(cols, ["dram type"]) or pick(cols, ["memory", "type"], forbid=["bus interface"])
+        m["bus_interface"] = pick(cols, ["bus interface"])
     else:
         m["cores"] = [c for c in cols if "cores" in c.lower() and "config" not in c.lower()]
+        # Hybrid Intel tables: P-core figures are the headline clocks.
+        m["clock_base"] = (pick(cols, ["p-core", "clock", "base"])
+                           or pick(cols, ["clock rate", "base"], forbid=["e-core"])
+                           or pick(cols, ["clock rate"], forbid=["turbo", "boost", "e-core", "pbo", "xfr", "tvb"]))
+        m["clock_boost"] = (pick(cols, ["p-core", "clock", "turbo"], forbid=["tvb"])
+                            or pick(cols, ["clock rate", "turbo"], forbid=["e-core", "tvb"])
+                            or pick(cols, ["clock rate", "boost"], forbid=["e-core"])
+                            or pick(cols, ["clock rate", "pbo"]))
+        m["cache"] = pick(cols, ["smart cache"]) or pick(cols, ["l3 cache"]) or pick(cols, ["l2 cache"])
+        m["power_max"] = pick(cols, ["tdp", "max"])
+        m["igpu"] = pick(cols, ["integrated gpu", "model"])
     return m
 
 
@@ -546,6 +683,17 @@ def rows_from_table(df: pd.DataFrame, src: Source) -> list[dict]:
             item["arch"] = ((nvidia_arch(codename) if src.vendor == "Nvidia" else amd_arch(arch_cell))
                             or GPU_ARCH.get(src.label))
             item["codename"] = codename
+            cell = lambda key: clean(row[cm[key]]) if cm.get(key) else None
+            item["fab_nm"] = parse_fab_nm(cell("fab"))
+            item["transistors_m"] = parse_transistors_m(cell("transistors"), cm.get("transistors") or "")
+            item["die_mm2"] = parse_die_mm2(cell("die"))
+            item["bus_width_bit"] = parse_bus_width(cell("bus_width"))
+            bw = parse_numbers(cell("bandwidth"))
+            item["bandwidth_gbs"] = bw[0] if bw and 1 <= bw[0] <= 20000 else None
+            item["fp32_tflops"] = parse_fp32_tflops(cell("fp32"), cm.get("fp32") or "")
+            item["clock_mhz"], item["boost_mhz"] = parse_clock_pair(cell("clock"))
+            item["memory_type"] = parse_memory_type(cell("memory_type")) or parse_memory_type(cell("bus_width"))
+            item["bus_interface"] = cell("bus_interface")
         else:
             cores, threads = parse_cores([clean(row[c]) for c in cm["cores"]])
             item["cores"] = cores
@@ -558,6 +706,15 @@ def rows_from_table(df: pd.DataFrame, src: Source) -> list[dict]:
                         socket = sock
                         break
             item["arch"] = socket
+            cell = lambda key: clean(row[cm[key]]) if cm.get(key) else None
+            item["clock_ghz"] = parse_ghz(cell("clock_base"))
+            item["boost_ghz"] = parse_ghz(cell("clock_boost"))
+            item["cache_mb"] = parse_cache_mb(cell("cache"))
+            item["cache_column"] = ("L3" if cm.get("cache") and ("smart" in cm["cache"].lower() or "l3" in cm["cache"].lower())
+                                    else "L2" if cm.get("cache") else None)
+            pmax = parse_numbers(cell("power_max"))
+            item["power_max_w"] = round(pmax[0]) if pmax else None
+            item["igpu"] = cell("igpu")
         items.append(item)
     return items
 
@@ -693,6 +850,12 @@ def write_review(items: list[dict], dropped_no_year: int, sources: list[dict]) -
             if sub:
                 lines.append(slice_row(f"{vendor} {kind.upper()}", sub))
     lines.append(slice_row("All", items))
+    ext = {"gpu": ["fp32_tflops", "bandwidth_gbs", "bus_width_bit", "clock_mhz", "boost_mhz", "memory_type", "transistors_m", "die_mm2", "fab_nm", "bus_interface"],
+           "cpu": ["clock_ghz", "boost_ghz", "cache_mb", "power_max_w", "igpu"]}
+    lines += ["", "Extended fields (tools pages, not game hints), share of rows with a value:", ""]
+    for kind, keys in ext.items():
+        sub = [i for i in items if i["type"] == kind]
+        lines.append(f"- {kind.upper()}: " + ", ".join(f"{k} {100 * sum(1 for i in sub if i.get(k) is not None) // len(sub)}%" for k in keys))
     lines += ["", f"Rows dropped for having no release year: {dropped_no_year}.",
               f"Rows with a hand override from `overrides.json`: {sum(1 for i in items if i.get('override_source'))}; "
               f"with a disputed field (never an answer): {sum(1 for i in items if i.get('disputed'))}; "

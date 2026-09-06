@@ -14,6 +14,11 @@ Longview Automation is the business and its plan does not change because of anyt
 | `actorle-review-2026-09-05.md` | What actorle.com is, what it really earns, what to copy |
 | `ideas-shortlist-2026-09-05.md` | Six ideas that passed the screen, ranked, plus 20 that failed and why |
 | `gpu-game/research.md` | Full research on the #1 idea: the guess-the-GPU/CPU game |
+| `next-project-research-2026-09-05.md` | What to build next: every candidate's data fetched and checked, incumbents re-searched, hurricane recommended, rocket runner-up |
+| `profitable-project-plan-2026-09-05.md` | **Current direction.** PC hardware tools on the Specdle data plus Blender Open Data (CC0) and FRED CPI: what to build, what it needs, the money |
+| `data/blender_perf.py` | Blender Open Data (CC0) → `data/perf.json`: median rendering score per part, plus the full device table; `data/review-perf.md` for hand-checking; `data/perf-overrides.json` is the hand map |
+| `data/cpi.py` | FRED CPI (public domain) → `data/cpi.json`, annual averages for "launch price in today's dollars" |
+| `data/check.py` | Cross-checks the three JSON files after any rebuild and prints coverage |
 | `data/build.py` | Evening 1: pulls the Wikipedia tables via the MediaWiki API and writes `data/items.json` |
 | `data/items.json` | The dataset: desktop GPUs (2006+) and CPUs (2006+), one row per part, CC BY-SA 4.0 |
 | `data/review-sample.md` | Coverage table and 20 random rows for hand-checking, regenerated each build |
@@ -26,6 +31,10 @@ Longview Automation is the business and its plan does not change because of anyt
 - Research done. **Idea #1 approved. Working name: Specdle.** Nothing bought.
 - Evening 1 done: `data/build.py` builds the dataset from Wikipedia. Two external fact reviews
   of `data/review-sample.md` acted on; conventions in `data/LICENSE.md`.
+- **2026-09-05, direction change (Tyler):** daily-game ideas parked; the site becomes the home
+  of PC-hardware buying tools on the same data. Plan: `profitable-project-plan-2026-09-05.md`.
+  Domain decision: stay on specdle.com. **Evening 1 of that plan done** the same day: extended
+  spec fields, Blender (CC0) performance join, CPI. Not deployed; the game is unchanged.
 - Evenings 2–4 compressed into one day on Tyler's call. **Live 2026-09-05** at
   https://jolly-mud-0788fde0f.6.azurestaticapps.net (Azure SWA Free, `specdle-rg` / `specdle`).
   Launch checklist below.
@@ -68,6 +77,18 @@ More → build the second mode and the phone dataset, apply to Journey. Track fo
 daily players, share clicks, affiliate clicks, directory referrals (all in GoatCounter).
 
 ## Running the dataset build
+
+```sh
+uv venv .venv --python 3.12
+uv pip install --python .venv/bin/python pandas lxml beautifulsoup4 html5lib
+.venv/bin/python data/build.py            # offline after the first run; API responses cached in data/raw/
+.venv/bin/python data/build.py --refresh  # refetch from Wikipedia (the monthly n8n job does this)
+.venv/bin/python data/blender_perf.py     # data/perf.json from the cached snapshot (--refresh downloads ~100 MB)
+.venv/bin/python data/cpi.py              # data/cpi.json (--refresh refetches from FRED, no key needed)
+.venv/bin/python data/check.py            # consistency + coverage; run after all three
+```
+
+Old instructions, kept for the record:
 
 ```sh
 uv venv .venv --python 3.12
