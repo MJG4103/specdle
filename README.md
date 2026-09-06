@@ -56,7 +56,7 @@ commit is a content update. Hash routes: `#/`, `#/day/YYYY-MM-DD`, `#/archive`, 
 | Set `SITE_URL` in `src/config.js` once the domain is live | done | ✓ |
 | Amazon Associates account; set `AMAZON_TAG` | done | ✓ approved 2026-09-05, Associate ID `specdle-20`; affiliate link and disclosure now render on result pages |
 | GoatCounter account (free); set `GOATCOUNTER_CODE` | done | ✓ https://mjg.goatcounter.com |
-| Submit to dles.gg, dlegames.org, alldle.net, listdle.com, dailydle.org | Claude, on Tyler's go | copy ready in `marketing/launch-kit.md` |
+| Submit to the -dle directories | done 2026-09-05 | ✓ dles.gg, alldle.net, listdle.com, dailydle.org (free queue), dles.aukspot.com. Skipped dlegames.org: pay-to-list ($10–20) plus account, Tyler's call |
 | Post once to LTT forum, Show HN; r/pcmasterrace only after weeks of real participation | Tyler | drafts in `marketing/launch-kit.md` |
 | Google Search Console: add specdle.com, submit `/sitemap.xml` | Tyler (Google account) | |
 | Journey by Mediavine application at 1,000 sessions/month | Tyler | |

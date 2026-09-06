@@ -21,11 +21,13 @@ URL: https://specdle.com · Icon: green rounded square with a white S (`public/o
 | Directory | Submit at | Notes |
 |---|---|---|
 | dles.gg | dles.gg → "Submit a game" | Biggest; ranks by popularity, so submit early and let the share traffic lift it |
-| dlegames.org | dlegames.org → Submit | Category: Technology / Trivia |
+| dlegames.org | dlegames.org → Submit | **Now pay-to-list** ($10 AI draft / $20 editorial, account required). Not submitted; decide after week 2 traffic |
 | alldle.net | alldle.net → Add a game | Lists 1,000+; short description works best |
 | listdle.com | listdle.com → Submit | Asks for tags: hardware, pc, gaming, trivia |
 | dailydle.org | dailydle.org → Submit | |
 | dles.aukspot.com | form on site | Small but curated |
+
+Submitted 2026-09-05: dles.gg, alldle.net, listdle.com, dailydle.org (free queue; they upsell $39 homepage and $9.90 priority, both declined), dles.aukspot.com (Tally form; note their rule: no generative-AI content, which matters if the daily blurb feature ships).
 
 Fields they all ask for: name (Specdle), URL, one-line description (the "Short" line above),
 category (Technology or Trivia), contact email, sometimes a 512×512 icon.
