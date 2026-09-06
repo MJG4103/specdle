@@ -13,6 +13,15 @@ export default function Data() {
         derived dataset is published under the same license. Download it:{" "}
         <a className="underline" href="/items.json" download>items.json</a> (generated {DATASET_GENERATED}).
       </p>
+      <p>
+        The same data powers the spec pages: <a className="underline" href="/gpu/">graphics cards</a> and{" "}
+        <a className="underline" href="/cpu/">processors</a>, each with its launch price in today's dollars and, where the
+        community has benchmarked it, a Blender rendering score. Two companion datasets sit beside items.json:{" "}
+        <a className="underline" href="/perf.json" download>perf.json</a>, median scores derived from{" "}
+        <a className="underline" href="https://opendata.blender.org/">Blender Open Data</a> (CC0), and{" "}
+        <a className="underline" href="/cpi.json" download>cpi.json</a>, calendar-year averages of the U.S. Consumer Price Index
+        (BLS via FRED, public domain). A Blender score is a rendering score, not a gaming benchmark.
+      </p>
       <h3 className="font-semibold">Sources (exact revisions used)</h3>
       <ul className="list-disc space-y-1 pl-5">
         {SOURCES.map((s) => (
@@ -29,7 +38,7 @@ export default function Data() {
         <li><strong>Architecture / socket</strong>: the GPU architecture family per chip, or the CPU socket.</li>
       </ul>
       <p>
-        No benchmark scores, product photos or box art are used; those are proprietary. Errors in the derived
+        No proprietary benchmark scores, product photos or box art are used; the only performance figure is the CC0 Blender score. Errors in the derived
         data are ours, not Wikipedia's. Spotted one? The whole pipeline is a public repository; corrections with
         a source are welcome.
       </p>

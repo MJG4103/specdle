@@ -8,3 +8,6 @@ dist/
 data/raw/
 __pycache__/
 public/items.json
+dist-ssr/
+public/perf.json
+public/cpi.json

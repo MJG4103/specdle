@@ -96,7 +96,7 @@ Everything is static: built at deploy time from three JSON files, no server, no 
 3. `data/cpi.py`: FRED CSV → annual averages → `data/cpi.json`. "Today's dollars" = MSRP × (latest year avg ÷ launch year avg).
 4. n8n monthly job on the mini: run all three, open a PR. Never deploys. Same heartbeat as the other jobs.
 
-### Site work
+### Site work — items 5–8 done 2026-09-05 (chart-to-PNG belongs to T2, Evening 3)
 
 5. **Real URLs.** The game is a hash-routed SPA (`#/archive`), which search engines treat as one page. Tool pages need `/gpu/rtx-3070` as a real path with the HTML pre-rendered at build time (a build script rendering each route with react-dom/server, or Astro alongside Vite). `staticwebapp.config.json` already excludes assets from the SPA fallback; extend it. Azure SWA Free caps the app at 250 MB; ~5k pages at ~20 KB fits.
 6. Sitemap generated from the data, canonical tags, one JSON-LD block per page (`Product` with specs is fine; we are not the seller).
@@ -122,7 +122,7 @@ ever wanted, the paths map 1:1 to redirects. Cost of being wrong: one redirect f
 | Evening | Deliverable |
 |---|---|
 | 1 ✓ | **Done 2026-09-05.** `build.py` parses 16 more fields (FP32 TFLOPS on 116 of 117 GPUs since 2016, bandwidth, bus width, clocks, memory type, transistors, die, fab, bus interface; CPU base/boost clocks, cache, max turbo power, iGPU). `blender_perf.py` → `perf.json` (393 parts, 1,443 devices). `cpi.py` → `cpi.json`. `check.py` validates all three and prints coverage. Existing game fields unchanged except 29 GeForce 9 codenames that were empty before. `npm test` passes |
-| 2 | Pre-render pipeline, T1 part pages, sitemap, affiliate link + disclosure. Deploy. Search Console |
+| 2 ✓ | **Built 2026-09-05.** Vite SSR entry + `scripts/prerender.mjs` write 836 static pages (2 indexes, 297 GPU, 537 CPU) at ~16 KB each, 14 MB total, sitemap with 837 URLs, JSON-LD `Product` per part, canonical/OG tags, GoatCounter with an affiliate-click event. Each part page: launch price and today's-dollar figure with method, Blender score with rank overall and in-series and points per $100, full spec table, tier lineage (16 rows, variants dropped), same-era neighbours, Amazon link with disclosure, link to the game. `npm test` 26 tests pass. **Not yet deployed**: push to main deploys; Search Console is Tyler's step |
 | 3 | T2 price-history tool with shareable image; T4 Blender ranking. Post T2 once to r/pcmasterrace-style venues via the game's launch-kit rules |
 | 4 | T3 upgrade calculator and pair pages. Show HN: "Open-data GPU tools: launch price in today's dollars and CC0 benchmark scores" |
 | then | n8n monthly refresh; watch four numbers: sessions, affiliate clicks, Amazon orders, Search Console impressions |

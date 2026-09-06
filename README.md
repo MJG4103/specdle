@@ -35,6 +35,9 @@ Longview Automation is the business and its plan does not change because of anyt
   of PC-hardware buying tools on the same data. Plan: `profitable-project-plan-2026-09-05.md`.
   Domain decision: stay on specdle.com. **Evening 1 of that plan done** the same day: extended
   spec fields, Blender (CC0) performance join, CPI. Not deployed; the game is unchanged.
+- **Evening 2 built 2026-09-05:** 836 pre-rendered part and index pages with launch price in
+  today's dollars, Blender score and rank, full specs, tier lineage, neighbours, affiliate link;
+  sitemap generated at build. Awaiting commit and push (push deploys).
 - Evenings 2–4 compressed into one day on Tyler's call. **Live 2026-09-05** at
   https://jolly-mud-0788fde0f.6.azurestaticapps.net (Azure SWA Free, `specdle-rg` / `specdle`).
   Launch checklist below.
@@ -51,8 +54,16 @@ npm run build   # dist/ (the deploy workflow does this on push to main)
 Layout: `src/game/` is the logic (pure functions, tested), `src/components/` and `src/pages/`
 the UI, `src/config.js` the launch-time switches (site URL, Amazon tag, GoatCounter code).
 The dataset and schedule are imported straight from `data/`, so a dataset rebuild plus a
-commit is a content update. Hash routes: `#/`, `#/day/YYYY-MM-DD`, `#/archive`, `#/data`,
-`#/privacy`.
+commit is a content update. Hash routes for the game: `#/`, `#/day/YYYY-MM-DD`, `#/archive`,
+`#/data`, `#/privacy`.
+
+**Tool pages** (since 2026-09-05) are real, pre-rendered URLs: `/gpu/`, `/cpu/`, and one page
+per part with a launch price or a Blender score, e.g. `/gpu/geforce-rtx-3070/`. `src/tools/`
+holds the pure helpers (`model.js`, tested), the page components, and `entry-server.jsx`;
+`npm run build` runs the normal Vite build, then a Vite SSR build of that entry, then
+`scripts/prerender.mjs`, which writes `dist/<type>/<slug>/index.html` for every page plus
+`dist/sitemap.xml`. No client JavaScript on those pages beyond the analytics click hook.
+Pages reuse the game's stylesheet, so a new Tailwind class in `src/tools/` just works.
 
 ## Launch checklist
 

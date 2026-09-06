@@ -73,6 +73,8 @@ export default function App() {
         <a href="#/data" className="hover:underline">Data & attribution</a>
         <a href="#/privacy" className="hover:underline">Privacy</a>
         <a href="#/archive" className="hover:underline">Archive</a>
+        <a href="/gpu/" className="hover:underline">GPU specs</a>
+        <a href="/cpu/" className="hover:underline">CPU specs</a>
         <span className="ml-auto">Data CC BY-SA 4.0 · Wikipedia</span>
       </footer>
       {modal === "stats" && <StatsModal stats={stats} streak={streak} onClose={closeModal} />}

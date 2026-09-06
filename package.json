@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/tools/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "predev": "cp data/items.json public/items.json",
-    "prebuild": "cp data/items.json public/items.json"
+    "predev": "cp data/items.json data/perf.json data/cpi.json public/",
+    "prebuild": "cp data/items.json data/perf.json data/cpi.json public/"
   },
   "dependencies": {
     "react": "^19.1.0",
